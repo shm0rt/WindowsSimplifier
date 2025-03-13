@@ -17,14 +17,12 @@ Telegram.TelegramDesktop
 Microsoft.Teams
 JanDeDobbeleer.OhMyPosh
 Microsoft.OneDrive
-Rufus.Rufus
-WinMerge.WinMerge
 Obsidian.Obsidian
-Microsoft.PowerToys
 Proton.ProtonMail
 Proton.ProtonDrive
 ShareX.ShareX
-Flow-Launcherlow-Launcher
+Flow-Launcher.Flow-Launcher
 voidtools.Everything
 okibcn.nano
 Proton.ProtonPass
+glzr-io.glazewm

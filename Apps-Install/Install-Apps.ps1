@@ -1,41 +1,19 @@
-$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$appFile = Join-Path -Path $scriptDir -ChildPath "InstallApps"
+winget source update
 
-if (Test-Path $appFile) {
-    $appList = Get-Content $appFile | Where-Object { $_ -match '\S' }
-} else {
-    Write-Host "Error: InstallApps File not found!" -ForegroundColor Red
+$allApps = Get-Content -Path "Applist.psd1" | Where-Object { $_ -notmatch '^\s*#' -and $_ -match '\S' } | ForEach-Object { $_.Trim() }
+
+if (-not $allApps) {
+    [Console]::Error.WriteLine("No apps found in Applist.psd1")
     exit 1
 }
 
-$totalApps = $appList.Count
-$installedApps = 0
-$failedApps = 0
+$nonAdobeApps = $allApps | Where-Object { $_ -notmatch 'Adobe\.' }
+$adobeApps = $allApps | Where-Object { $_ -match 'Adobe\.' }
 
-ForEach ($appID in $appList) {
-    Write-Host "[$($installedApps + $failedApps + 1)/$totalApps] Installing $appID..." -NoNewline
-    try {
-                $output = winget install --id=$appID -e --silent --accept-package-agreements --accept-source-agreements 2>&1
-
-        if ($output -match "FFound.*an.*existing|No.*newer.*package") {
-            Write-Host " already installed and up-to-date." -ForegroundColor Yellow
-        } elseif ($LASTEXITCODE -eq 0) {
-            Write-Host " installed successfully!" -ForegroundColor Green
-        } else {
-            throw "Unexpected output or error: $output"
-        }
-        $installedApps++
-    } catch {
-        if ($_ -match "Uninstall the package.*and install the newer version") {
-            Write-Host " requires manual intervention for update." -ForegroundColor Magenta
-        } elseif ($_ -match "Unexpected output or error:") {
-            Write-Host " encountered an unexpected error." -ForegroundColor Red
-        } else {
-            Write-Host " failed to install." -ForegroundColor Red
-        }
-        $failedApps++
-    }
+if ($nonAdobeApps) {
+    winget install $nonAdobeApps -e --silent --accept-package-agreements --accept-source-agreements --disable-interactivity
 }
 
-Write-Host "`nInstallation process completed!"
-Write-Host "Total: $totalApps, Installed: $installedApps, Failed: $failedApps"
+if ($adobeApps) {
+    winget install $adobeApps -e
+}
