@@ -52,8 +52,9 @@ function RemoveApps {
         }
     }
 }
+
 function RegImport {
-    $regFilesFolder = "./Regfiles/"
+    $regFilesFolder = "$PSScriptRoot/Regfiles/"
     $regFiles = Get-ChildItem -Path $regFilesFolder -Filter "*.reg"
 
     if (-Not (Test-Path -Path $regFilesFolder)) {
@@ -80,8 +81,32 @@ function RegImport {
     }
 
     Write-Host "All .reg files have been processed." -ForegroundColor Cyan
-
 }
+
+# Add the missing ReplaceStartMenu function
+function ReplaceStartMenu {
+    param (
+        [string]$targetPath,
+        [string]$sourcePath
+    )
+    
+    try {
+        if (Test-Path $targetPath) {
+            # Take ownership of the target file if it exists
+            takeown /F $targetPath /A | Out-Null
+            icacls $targetPath /grant Administrators:F | Out-Null
+        }
+        
+        # Copy the source file to the target location
+        Copy-Item -Path $sourcePath -Destination $targetPath -Force
+        Write-Output "Replaced start menu at $targetPath"
+    }
+    catch {
+        Write-Host "Error replacing start menu at $targetPath" -ForegroundColor Red
+        Write-Host $_.Exception.Message -ForegroundColor Gray
+    }
+}
+
 function ReplaceStartMenuForAllUsers {
     Write-Output "> Removing all pinned apps from the start menu for all users..."
 
